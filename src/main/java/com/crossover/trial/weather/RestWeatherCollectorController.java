@@ -18,17 +18,18 @@ import static com.crossover.trial.weather.RestWeatherQueryController.*;
  * @author code test administrator
  */
 @RestController
-public class RestWeatherCollectorController {
+@RequestMapping(value = "/collect")
+public class RestWeatherCollectorController implements WeatherCollector {
     public final static Logger LOGGER = Logger.getLogger(RestWeatherCollectorController.class.getName());
 
 
-    @RequestMapping(value = "/collect/ping", method = RequestMethod.GET)
+    @RequestMapping(value = "/ping", method = RequestMethod.GET)
     public ResponseEntity<String> ping() {
         return new ResponseEntity("ready", HttpStatus.OK);
     }
 
 
-    @RequestMapping(value = "/collect/weather/{iata}/{pointType}", method = RequestMethod.POST)
+    @RequestMapping(value = "/weather/{iata}/{pointType}", method = RequestMethod.POST)
     public ResponseEntity updateWeather(@PathVariable("iata") String iataCode,
                                         @PathVariable("pointType") String pointType,
                                         @RequestBody DataPoint datapointJson) {
@@ -40,7 +41,7 @@ public class RestWeatherCollectorController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/collect/airports", method = RequestMethod.GET)
+    @RequestMapping(value = "/airports", method = RequestMethod.GET)
     public ResponseEntity<List> getAirports() {
         Set<String> retval = new HashSet<>();
         for (AirportData ad : airportData) {
@@ -56,7 +57,7 @@ public class RestWeatherCollectorController {
     }
 
 
-    @RequestMapping(value = "/collect/airport/{iata}/{lat}/{long}", method = RequestMethod.POST)
+    @RequestMapping(value = "/airport/{iata}/{lat}/{long}", method = RequestMethod.POST)
     public ResponseEntity addAirport(@PathVariable("iata") String iata,
                                      @PathVariable("lat") String latString,
                                      @PathVariable("long") String longString) {
@@ -65,13 +66,13 @@ public class RestWeatherCollectorController {
     }
 
 
-    @RequestMapping(value = "/collect/airport/{iata}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/airport/{iata}", method = RequestMethod.DELETE)
     public ResponseEntity deleteAirport(@PathVariable("iata") String iata) {
         return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
     }
 
 
-    @RequestMapping(value = "/collect/exit", method = RequestMethod.GET)
+    @RequestMapping(value = "/exit", method = RequestMethod.GET)
     public ResponseEntity exit() {
         System.exit(0);
         return ResponseEntity.noContent().build();
@@ -103,56 +104,46 @@ public class RestWeatherCollectorController {
      */
     public void updateAtmosphericInformation(AtmosphericInformation ai, String pointType, DataPoint dp) throws WeatherException {
         final DataPointType dptype = DataPointType.valueOf(pointType.toUpperCase());
-
-        if (pointType.equalsIgnoreCase(DataPointType.WIND.name())) {
-            if (dp.getMean() >= 0) {
-                ai.setWind(dp);
-                ai.setLastUpdateTime(System.currentTimeMillis());
-                return;
-            }
+        switch (dptype) {
+            case WIND:
+                if (dp.getMean() >= 0) {
+                    ai.setWind(dp);
+                    ai.setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case TEMPERATURE:
+                if (dp.getMean() >= -50 && dp.getMean() < 100) {
+                    ai.setTemperature(dp);
+                    ai.setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case HUMIDTY:
+                if (dp.getMean() >= 0 && dp.getMean() < 100) {
+                    ai.setHumidity(dp);
+                    ai.setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case PRESSURE:
+                if (dp.getMean() >= 650 && dp.getMean() < 800) {
+                    ai.setPressure(dp);
+                    ai.setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case CLOUDCOVER:
+                if (dp.getMean() >= 0 && dp.getMean() < 100) {
+                    ai.setCloudCover(dp);
+                    ai.setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case PRECIPITATION:
+                if (dp.getMean() >= 0 && dp.getMean() < 100) {
+                    ai.setPrecipitation(dp);
+                    ai.setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            default:
+                throw new IllegalStateException("couldn't update atmospheric data");
         }
-
-        if (pointType.equalsIgnoreCase(DataPointType.TEMPERATURE.name())) {
-            if (dp.getMean() >= -50 && dp.getMean() < 100) {
-                ai.setTemperature(dp);
-                ai.setLastUpdateTime(System.currentTimeMillis());
-                return;
-            }
-        }
-
-        if (pointType.equalsIgnoreCase(DataPointType.HUMIDTY.name())) {
-            if (dp.getMean() >= 0 && dp.getMean() < 100) {
-                ai.setHumidity(dp);
-                ai.setLastUpdateTime(System.currentTimeMillis());
-                return;
-            }
-        }
-
-        if (pointType.equalsIgnoreCase(DataPointType.PRESSURE.name())) {
-            if (dp.getMean() >= 650 && dp.getMean() < 800) {
-                ai.setPressure(dp);
-                ai.setLastUpdateTime(System.currentTimeMillis());
-                return;
-            }
-        }
-
-        if (pointType.equalsIgnoreCase(DataPointType.CLOUDCOVER.name())) {
-            if (dp.getMean() >= 0 && dp.getMean() < 100) {
-                ai.setCloudCover(dp);
-                ai.setLastUpdateTime(System.currentTimeMillis());
-                return;
-            }
-        }
-
-        if (pointType.equalsIgnoreCase(DataPointType.PRECIPITATION.name())) {
-            if (dp.getMean() >= 0 && dp.getMean() < 100) {
-                ai.setPrecipitation(dp);
-                ai.setLastUpdateTime(System.currentTimeMillis());
-                return;
-            }
-        }
-
-        throw new IllegalStateException("couldn't update atmospheric data");
     }
 
     /**

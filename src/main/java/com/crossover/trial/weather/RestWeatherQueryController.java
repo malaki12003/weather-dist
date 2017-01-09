@@ -19,6 +19,7 @@ import static com.crossover.trial.weather.RestWeatherCollectorController.addAirp
  * @author code test administrator
  */
 @RestController
+@RequestMapping(value = "/query")
 public class RestWeatherQueryController {
 
     public final static Logger logger = Logger.getLogger("WeatherQuery");
@@ -58,7 +59,7 @@ public class RestWeatherQueryController {
      *
      * @return health stats for the service as a string
      */
-    @RequestMapping(value = "/query/ping", method = RequestMethod.GET)
+    @RequestMapping(value = "/ping", method = RequestMethod.GET)
     public Map<String, Object> ping() {
         Map<String, Object> retval = new HashMap<>();
 
@@ -109,8 +110,8 @@ public class RestWeatherQueryController {
      * @param radiusString the radius in km
      * @return a list of atmospheric information
      */
-    @RequestMapping(value = "/query/weather/{iata}/{radius}", method = RequestMethod.GET)
-    public ResponseEntity<List> weather(@PathVariable("iata") String iata, @PathVariable("radius") String radiusString) {
+    @RequestMapping(value = "/weather/{iata}/{radius}", method = RequestMethod.GET)
+    public ResponseEntity<List<AtmosphericInformation>> weather(@PathVariable("iata") String iata, @PathVariable("radius") String radiusString) {
         double radius = radiusString == null || radiusString.trim().isEmpty() ? 0 : Double.valueOf(radiusString);
         updateRequestFrequency(iata, radius);
 
@@ -143,7 +144,7 @@ public class RestWeatherQueryController {
     public void updateRequestFrequency(String iata, Double radius) {
         AirportData airportData = findAirportData(iata);
         requestFrequency.put(airportData, requestFrequency.getOrDefault(airportData, 0) + 1);
-        radiusFreq.put(radius, radiusFreq.getOrDefault(radius, 0));
+        radiusFreq.put(radius, radiusFreq.getOrDefault(radius, 0) + 1);
     }
 
     /**
