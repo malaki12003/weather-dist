@@ -71,7 +71,8 @@ public class RestWeatherCollectorController {
 
     @RequestMapping(value = "/airport/{iata}", method = RequestMethod.DELETE)
     public ResponseEntity deleteAirport(@PathVariable("iata") String iata) {
-        return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+        RestWeatherQueryController.deleteAirportData(iata);
+        return new ResponseEntity(HttpStatus.ACCEPTED);
     }
 
 
@@ -80,6 +81,17 @@ public class RestWeatherCollectorController {
         System.exit(0);
         return ResponseEntity.noContent().build();
     }
+
+
+    @RequestMapping(value = "/airport", method = RequestMethod.POST)
+    public ResponseEntity addAirport(@RequestBody AirportData airportData) {
+        AirportData ad = new AirportData();
+        RestWeatherQueryController.airportData.add(ad);
+        AtmosphericInformation ai = new AtmosphericInformation();
+        RestWeatherQueryController.atmosphericInformation.add(ai);
+        return new ResponseEntity(HttpStatus.CREATED);
+    }
+
     //
     // Internal support methods
     //
@@ -148,6 +160,8 @@ public class RestWeatherCollectorController {
                 throw new IllegalStateException("couldn't update atmospheric data");
         }
     }
+
+
 
     /**
      * Add a new known airport to our list.

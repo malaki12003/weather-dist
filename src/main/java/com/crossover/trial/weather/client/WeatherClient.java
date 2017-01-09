@@ -14,7 +14,7 @@ public class WeatherClient {
 
     private static final String BASE_URI = "http://localhost:9090";
 
-    /** end point for read queries */
+
     private  RestTemplate restTemplate=new RestTemplate();
 
 

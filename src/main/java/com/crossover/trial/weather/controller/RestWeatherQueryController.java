@@ -170,6 +170,13 @@ public class RestWeatherQueryController {
         return airportData.indexOf(ad);
     }
 
+    public static void deleteAirportData(String iataCode) {
+        AirportData ad = findAirportData(iataCode);
+        int idx= airportData.indexOf(ad);
+        atmosphericInformation.remove(idx);
+    }
+
+
     /**
      * Haversine distance between two airports.
      *

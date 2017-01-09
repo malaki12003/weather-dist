@@ -1,43 +1,43 @@
 package com.crossover.trial.weather;
 
+import com.crossover.trial.weather.model.AirportData;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+
 /**
  * A simple airport loader which reads a file from disk and sends entries to the webservice
- *
+ * <p>
  * TODO: Implement the Airport Loader
  *
  * @author code test administrator
  */
 public class AirportLoader {
 
-//    /** end point for read queries */
-//    private WebTarget query;
-//
-//    /** end point to supply updates */
-//    private WebTarget collect;
-//
-//    public AirportLoader() {
-//        Client client = ClientBuilder.newClient();
-//        query = client.target("http://localhost:8080/query");
-//        collect = client.target("http://localhost:8080/collect");
-//    }
-//
-//    public void upload(InputStream airportDataStream) throws IOException{
-//        BufferedReader reader = new BufferedReader(new InputStreamReader(airportDataStream));
-//        String l = null;
-//        while ((l = reader.readLine()) != null) {
-//            break;
-//        }
-//    }
-//
-//    public static void main(String args[]) throws IOException{
-//        File airportDataFile = new File(args[0]);
-//        if (!airportDataFile.exists() || airportDataFile.length() == 0) {
-//            System.err.println(airportDataFile + " is not a valid input");
-//            System.exit(1);
-//        }
-//
-//        AirportLoader al = new AirportLoader();
-//        al.upload(new FileInputStream(airportDataFile));
-//        System.exit(0);
-//    }
+    private static final String BASE_URI = "http://localhost:9090";
+
+
+
+
+
+    public static void main(String args[]) throws IOException {
+        final RestTemplate restTemplate = new RestTemplate();
+
+        File airportDataFile = new File("airports.dat");
+        if (!airportDataFile.exists() || airportDataFile.length() == 0) {
+            System.err.println(airportDataFile + " is not a valid input");
+            System.exit(1);
+        }
+
+        AirportLoader al = new AirportLoader();
+        try (Stream<String> stream = Files.lines(Paths.get(airportDataFile.getAbsolutePath()))) {
+            stream.map(e -> e.split(",")).map(s -> new AirportData(s[1], s[2], s[3], s[4],s[5], Double.parseDouble(s[6]), Double.parseDouble(s[7]), Double.parseDouble(s[8]), Double.parseDouble(s[9]), s[10].charAt(0))).forEach(a -> restTemplate.postForObject(BASE_URI+"/collect/airport",a,Void.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
