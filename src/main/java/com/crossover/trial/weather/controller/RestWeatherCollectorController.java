@@ -1,6 +1,6 @@
 package com.crossover.trial.weather.controller;
 
-import com.crossover.trial.weather.WeatherException;
+import com.crossover.trial.weather.exception.WeatherException;
 import com.crossover.trial.weather.model.AirportData;
 import com.crossover.trial.weather.model.AtmosphericInformation;
 import com.crossover.trial.weather.model.DataPoint;
