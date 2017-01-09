@@ -1,13 +1,16 @@
 package com.crossover.trial.weather;
 
-import com.google.gson.Gson;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.crossover.trial.weather.RestWeatherCollectorEndpoint.addAirport;
+import static com.crossover.trial.weather.RestWeatherCollectorController.addAirport;
 
 /**
  * The Weather App REST endpoint allows clients to query, update and check health stats. Currently, all data is
@@ -15,21 +18,25 @@ import static com.crossover.trial.weather.RestWeatherCollectorEndpoint.addAirpor
  *
  * @author code test administrator
  */
-@Path("/query")
-public class RestWeatherQueryEndpoint implements WeatherQueryEndpoint {
+@RestController
+public class RestWeatherQueryController {
 
-    public final static Logger LOGGER = Logger.getLogger("WeatherQuery");
+    public final static Logger logger = Logger.getLogger("WeatherQuery");
 
-    /** earth radius in KM */
+    /**
+     * earth radius in KM
+     */
     public static final double R = 6372.8;
 
-    /** shared gson json to object factory */
-    public static final Gson gson = new Gson();
 
-    /** all known airports */
+    /**
+     * all known airports
+     */
     protected static List<AirportData> airportData = new ArrayList<>();
 
-    /** atmospheric information for each airport, idx corresponds with airportData */
+    /**
+     * atmospheric information for each airport, idx corresponds with airportData
+     */
     protected static List<AtmosphericInformation> atmosphericInformation = new LinkedList<>();
 
     /**
@@ -45,13 +52,14 @@ public class RestWeatherQueryEndpoint implements WeatherQueryEndpoint {
     static {
         init();
     }
+
     /**
      * Retrieve service health including total size of valid data points and request frequency information.
      *
      * @return health stats for the service as a string
      */
-    @Override
-    public String ping() {
+    @RequestMapping(value = "/query/ping", method = RequestMethod.GET)
+    public Map<String, Object> ping() {
         Map<String, Object> retval = new HashMap<>();
 
         int datasize = 0;
@@ -74,14 +82,14 @@ public class RestWeatherQueryEndpoint implements WeatherQueryEndpoint {
         Map<String, Double> freq = new HashMap<>();
         // fraction of queries
         for (AirportData data : airportData) {
-            double frac = (double)requestFrequency.getOrDefault(data, 0) / requestFrequency.size();
+            double frac = (double) requestFrequency.getOrDefault(data, 0) / requestFrequency.size();
             freq.put(data.getIata(), frac);
         }
         retval.put("iata_freq", freq);
 
         int m = radiusFreq.keySet().stream()
-                .max(Double::compare)
-                .orElse(1000.0).intValue() + 1;
+            .max(Double::compare)
+            .orElse(1000.0).intValue() + 1;
 
         int[] hist = new int[m];
         for (Map.Entry<Double, Integer> e : radiusFreq.entrySet()) {
@@ -90,20 +98,19 @@ public class RestWeatherQueryEndpoint implements WeatherQueryEndpoint {
         }
         retval.put("radius_freq", hist);
 
-        return gson.toJson(retval);
+        return retval;
     }
 
     /**
      * Given a query in json format {'iata': CODE, 'radius': km} extracts the requested airport information and
      * return a list of matching atmosphere information.
      *
-     * @param iata the iataCode
+     * @param iata         the iataCode
      * @param radiusString the radius in km
-     *
      * @return a list of atmospheric information
      */
-    @Override
-    public Response weather(String iata, String radiusString) {
+    @RequestMapping(value = "/query/weather/{iata}/{radius}", method = RequestMethod.GET)
+    public ResponseEntity<List> weather(@PathVariable("iata") String iata, @PathVariable("radius") String radiusString) {
         double radius = radiusString == null || radiusString.trim().isEmpty() ? 0 : Double.valueOf(radiusString);
         updateRequestFrequency(iata, radius);
 
@@ -113,24 +120,24 @@ public class RestWeatherQueryEndpoint implements WeatherQueryEndpoint {
             retval.add(atmosphericInformation.get(idx));
         } else {
             AirportData ad = findAirportData(iata);
-            for (int i=0;i< airportData.size(); i++){
-                if (calculateDistance(ad, airportData.get(i)) <= radius){
+            for (int i = 0; i < airportData.size(); i++) {
+                if (calculateDistance(ad, airportData.get(i)) <= radius) {
                     AtmosphericInformation ai = atmosphericInformation.get(i);
                     if (ai.getCloudCover() != null || ai.getHumidity() != null || ai.getPrecipitation() != null
-                       || ai.getPressure() != null || ai.getTemperature() != null || ai.getWind() != null){
+                        || ai.getPressure() != null || ai.getTemperature() != null || ai.getWind() != null) {
                         retval.add(ai);
                     }
                 }
             }
         }
-        return Response.status(Response.Status.OK).entity(retval).build();
+        return new ResponseEntity(retval, HttpStatus.OK);
     }
 
 
     /**
      * Records information about how often requests are made
      *
-     * @param iata an iata code
+     * @param iata   an iata code
      * @param radius query radius
      */
     public void updateRequestFrequency(String iata, Double radius) {
@@ -172,8 +179,8 @@ public class RestWeatherQueryEndpoint implements WeatherQueryEndpoint {
     public double calculateDistance(AirportData ad1, AirportData ad2) {
         double deltaLat = Math.toRadians(ad2.latitude - ad1.latitude);
         double deltaLon = Math.toRadians(ad2.longitude - ad1.longitude);
-        double a =  Math.pow(Math.sin(deltaLat / 2), 2) + Math.pow(Math.sin(deltaLon / 2), 2)
-                * Math.cos(ad1.latitude) * Math.cos(ad2.latitude);
+        double a = Math.pow(Math.sin(deltaLat / 2), 2) + Math.pow(Math.sin(deltaLon / 2), 2)
+            * Math.cos(ad1.latitude) * Math.cos(ad2.latitude);
         double c = 2 * Math.asin(Math.sqrt(a));
         return R * c;
     }
