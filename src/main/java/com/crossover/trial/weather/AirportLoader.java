@@ -25,6 +25,7 @@ public class AirportLoader {
 
     public static void main(String args[]) throws IOException {
 
+        args=new String[]{"airports.dat"};
         if (args.length < 1) {
             System.err.println("Please provide us with path of airportDataFile");
             System.exit(1);
