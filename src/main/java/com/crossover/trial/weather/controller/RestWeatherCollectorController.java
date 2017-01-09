@@ -1,5 +1,10 @@
-package com.crossover.trial.weather;
+package com.crossover.trial.weather.controller;
 
+import com.crossover.trial.weather.WeatherException;
+import com.crossover.trial.weather.model.AirportData;
+import com.crossover.trial.weather.model.AtmosphericInformation;
+import com.crossover.trial.weather.model.DataPoint;
+import com.crossover.trial.weather.model.DataPointType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import static com.crossover.trial.weather.RestWeatherQueryController.*;
-
 /**
  * A REST implementation of the WeatherCollector API. Accessible only to airport weather collection
  * sites via secure VPN.
@@ -19,7 +22,7 @@ import static com.crossover.trial.weather.RestWeatherQueryController.*;
  */
 @RestController
 @RequestMapping(value = "/collect")
-public class RestWeatherCollectorController implements WeatherCollector {
+public class RestWeatherCollectorController {
     public final static Logger LOGGER = Logger.getLogger(RestWeatherCollectorController.class.getName());
 
 
@@ -44,7 +47,7 @@ public class RestWeatherCollectorController implements WeatherCollector {
     @RequestMapping(value = "/airports", method = RequestMethod.GET)
     public ResponseEntity<List> getAirports() {
         Set<String> retval = new HashSet<>();
-        for (AirportData ad : airportData) {
+        for (AirportData ad : RestWeatherQueryController.airportData) {
             retval.add(ad.getIata());
         }
         return new ResponseEntity(retval, HttpStatus.OK);
@@ -52,7 +55,7 @@ public class RestWeatherCollectorController implements WeatherCollector {
 
     @RequestMapping(value = "/collect/airport/{iata}", method = RequestMethod.GET)
     public ResponseEntity<AirportData> getAirport(@PathVariable("iata") String iata) {
-        AirportData ad = findAirportData(iata);
+        AirportData ad = RestWeatherQueryController.findAirportData(iata);
         return new ResponseEntity(ad, HttpStatus.OK);
     }
 
@@ -90,8 +93,8 @@ public class RestWeatherCollectorController implements WeatherCollector {
      * @throws WeatherException if the update can not be completed
      */
     public void addDataPoint(String iataCode, String pointType, DataPoint dp) throws WeatherException {
-        int airportDataIdx = getAirportDataIdx(iataCode);
-        AtmosphericInformation ai = atmosphericInformation.get(airportDataIdx);
+        int airportDataIdx = RestWeatherQueryController.getAirportDataIdx(iataCode);
+        AtmosphericInformation ai = RestWeatherQueryController.atmosphericInformation.get(airportDataIdx);
         updateAtmosphericInformation(ai, pointType, dp);
     }
 
@@ -156,10 +159,10 @@ public class RestWeatherCollectorController implements WeatherCollector {
      */
     public static AirportData addAirport(String iataCode, double latitude, double longitude) {
         AirportData ad = new AirportData();
-        airportData.add(ad);
+        RestWeatherQueryController.airportData.add(ad);
 
         AtmosphericInformation ai = new AtmosphericInformation();
-        atmosphericInformation.add(ai);
+        RestWeatherQueryController.atmosphericInformation.add(ai);
         ad.setIata(iataCode);
         ad.setLatitude(latitude);
         ad.setLatitude(longitude);

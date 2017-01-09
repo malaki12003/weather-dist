@@ -1,5 +1,7 @@
-package com.crossover.trial.weather;
+package com.crossover.trial.weather.controller;
 
+import com.crossover.trial.weather.model.AirportData;
+import com.crossover.trial.weather.model.AtmosphericInformation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,8 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 import java.util.logging.Logger;
-
-import static com.crossover.trial.weather.RestWeatherCollectorController.addAirport;
 
 /**
  * The Weather App REST endpoint allows clients to query, update and check health stats. Currently, all data is
@@ -178,10 +178,10 @@ public class RestWeatherQueryController {
      * @return the distance in KM
      */
     public double calculateDistance(AirportData ad1, AirportData ad2) {
-        double deltaLat = Math.toRadians(ad2.latitude - ad1.latitude);
-        double deltaLon = Math.toRadians(ad2.longitude - ad1.longitude);
+        double deltaLat = Math.toRadians(ad2.getLatitude() - ad1.getLatitude());
+        double deltaLon = Math.toRadians(ad2.getLongitude() - ad1.getLongitude());
         double a = Math.pow(Math.sin(deltaLat / 2), 2) + Math.pow(Math.sin(deltaLon / 2), 2)
-            * Math.cos(ad1.latitude) * Math.cos(ad2.latitude);
+            * Math.cos(ad1.getLatitude()) * Math.cos(ad2.getLatitude());
         double c = 2 * Math.asin(Math.sqrt(a));
         return R * c;
     }
@@ -194,11 +194,11 @@ public class RestWeatherQueryController {
         atmosphericInformation.clear();
         requestFrequency.clear();
 
-        addAirport("BOS", 42.364347, -71.005181);
-        addAirport("EWR", 40.6925, -74.168667);
-        addAirport("JFK", 40.639751, -73.778925);
-        addAirport("LGA", 40.777245, -73.872608);
-        addAirport("MMU", 40.79935, -74.4148747);
+        RestWeatherCollectorController.addAirport("BOS", 42.364347, -71.005181);
+        RestWeatherCollectorController.addAirport("EWR", 40.6925, -74.168667);
+        RestWeatherCollectorController.addAirport("JFK", 40.639751, -73.778925);
+        RestWeatherCollectorController.addAirport("LGA", 40.777245, -73.872608);
+        RestWeatherCollectorController.addAirport("MMU", 40.79935, -74.4148747);
     }
 
 }

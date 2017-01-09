@@ -1,10 +1,7 @@
-package com.crossover.trial.weather;
+package com.crossover.trial.weather.client;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
+import com.crossover.trial.weather.model.DataPoint;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * A reference implementation for the weather client. Consumers of the REST API can look at WeatherClient
@@ -18,46 +15,32 @@ public class WeatherClient {
     private static final String BASE_URI = "http://localhost:9090";
 
     /** end point for read queries */
-    private WebTarget query;
+    private  RestTemplate restTemplate=new RestTemplate();
 
-    /** end point to supply updates */
-    private WebTarget collect;
 
-    public WeatherClient() {
-        Client client = ClientBuilder.newClient();
-        query = client.target(BASE_URI + "/query");
-        collect = client.target(BASE_URI + "/collect");
-    }
 
     public void pingCollect() {
-        WebTarget path = collect.path("/ping");
-        Response response = path.request().get();
-        System.out.print("collect.ping: " + response.readEntity(String.class) + "\n");
+        System.out.print("collect.ping: " +restTemplate.getForObject(BASE_URI+"/collect/ping",String.class));
     }
 
     public void query(String iata) {
-        WebTarget path = query.path("/weather/" + iata + "/0");
-        Response response = path.request().get();
-        System.out.println("query." + iata + ".0: " + response.readEntity(String.class));
+        System.out.println("query." + iata + ".0: " + restTemplate.getForObject(BASE_URI+"/query/weather/{iata}/0",String.class,iata));
     }
 
     public void pingQuery() {
-        WebTarget path = query.path("/ping");
-        Response response = path.request().get();
-        System.out.println("query.ping: " + response.readEntity(String.class));
+        System.out.println("query.ping: " + restTemplate.getForObject(BASE_URI+"/query/ping",String.class));
     }
 
     public void populate(String pointType, int first, int last, int mean, int median, int count) {
-        WebTarget path = collect.path("/weather/BOS/" + pointType);
         DataPoint dp = new DataPoint.Builder()
                 .withFirst(first).withLast(last).withMean(mean).withMedian(median).withCount(count)
                 .build();
-        Response post = path.request().post(Entity.entity(dp, "application/json"));
+        restTemplate.postForObject(BASE_URI+"/collect/weather/BOS/{pointType}",dp,Void.class,pointType);
     }
 
     public void exit() {
         try {
-            collect.path("/exit").request().get();
+            restTemplate.getForObject(BASE_URI+"/collect/exit",Void.class);
         } catch (Throwable t) {
             // swallow
         }
