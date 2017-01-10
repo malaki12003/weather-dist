@@ -8,10 +8,8 @@ import com.crossover.trial.weather.model.DataPointType;
 import com.crossover.trial.weather.util.Util;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -190,7 +188,6 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     public List<AtmosphericInformation> listOfMatchingAtmosphereInfo(String iata, double radius) {
         updateRequestFrequency(iata, radius);
-
         List<AtmosphericInformation> retval = new ArrayList<>();
         if (radius == 0) {
             int idx = getAirportDataIdx(iata);
@@ -264,6 +261,7 @@ public class WeatherServiceImpl implements WeatherService {
     public void deleteAirportData(String iataCode) {
         AirportData ad = findAirportData(iataCode);
         int idx = airportData.indexOf(ad);
+        airportData.remove(ad);
         atmosphericInformation.remove(idx);
     }
 
@@ -282,16 +280,16 @@ public class WeatherServiceImpl implements WeatherService {
     /**
      * A dummy init method that loads hard coded data
      */
-    @PostConstruct
-    private void init() {
-        airportData.clear();
-        atmosphericInformation.clear();
-        requestFrequency.clear();
-
-        addAirport("BOS", 42.364347, -71.005181);
-        addAirport("EWR", 40.6925, -74.168667);
-        addAirport("JFK", 40.639751, -73.778925);
-        addAirport("LGA", 40.777245, -73.872608);
-        addAirport("MMU", 40.79935, -74.4148747);
-    }
+//    @PostConstruct
+//    private void init() {
+//        airportData.clear();
+//        atmosphericInformation.clear();
+//        requestFrequency.clear();
+//
+//        addAirport("BOS", 42.364347, -71.005181);
+//        addAirport("EWR", 40.6925, -74.168667);
+//        addAirport("JFK", 40.639751, -73.778925);
+//        addAirport("LGA", 40.777245, -73.872608);
+//        addAirport("MMU", 40.79935, -74.4148747);
+//    }
 }
