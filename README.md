@@ -20,7 +20,5 @@ The application currently supports the following REST APIs, you should not chang
 * POST /collect/weather/{iata}/{pointType}
 * GET /query/ping
 * GET /query/weather/{iata}/{radius}
-
-Unimplemented REST APIs
 * POST /collect/airport/{iata}/{lat}/{long}
 * DELETE /collect/airport/{iata}
