@@ -41,7 +41,7 @@ public class DataPoint {
         return mean;
     }
 
-    protected void setMean(double mean) {
+    public void setMean(double mean) {
         this.mean = mean;
     }
 
@@ -52,7 +52,7 @@ public class DataPoint {
         return first;
     }
 
-    protected void setFirst(int first) {
+    public void setFirst(int first) {
         this.first = first;
     }
 
@@ -63,7 +63,7 @@ public class DataPoint {
         return second;
     }
 
-    protected void setSecond(int second) {
+    public void setSecond(int second) {
         this.second = second;
     }
 
@@ -74,7 +74,7 @@ public class DataPoint {
         return third;
     }
 
-    protected void setThird(int third) {
+    public void setThird(int third) {
         this.third = third;
     }
 
@@ -85,7 +85,7 @@ public class DataPoint {
         return count;
     }
 
-    protected void setCount(int count) {
+    public void setCount(int count) {
         this.count = count;
     }
 
