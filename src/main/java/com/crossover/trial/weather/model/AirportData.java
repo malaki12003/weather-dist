@@ -31,6 +31,8 @@ public class AirportData {
     // One of E (Europe), A (US/Canada), S (South America), O (Australia), Z (New Zealand), N (None) or U (Unknown)
     private char dst;
 
+    private  AtmosphericInformation atmosphericInformation=new AtmosphericInformation();
+
     public AirportData() {
     }
 
@@ -125,6 +127,14 @@ public class AirportData {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public AtmosphericInformation getAtmosphericInformation() {
+        return atmosphericInformation;
+    }
+
+    public void setAtmosphericInformation(AtmosphericInformation atmosphericInformation) {
+        this.atmosphericInformation = atmosphericInformation;
     }
 
     public boolean equals(Object other) {

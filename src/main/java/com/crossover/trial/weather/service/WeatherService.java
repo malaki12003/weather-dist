@@ -4,6 +4,7 @@ import com.crossover.trial.weather.exception.WeatherException;
 import com.crossover.trial.weather.model.AirportData;
 import com.crossover.trial.weather.model.AtmosphericInformation;
 import com.crossover.trial.weather.model.DataPoint;
+import com.crossover.trial.weather.model.DataPointType;
 
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,6 @@ public interface WeatherService {
     void addDataPoint(String iataCode, String pointType, DataPoint dp) throws WeatherException;
 
     void addAirport(AirportData ad);
-
-    void updateAtmosphericInformation(AtmosphericInformation ai, String pointType, DataPoint dp) throws WeatherException;
 
     AirportData addAirport(String iataCode, double latitude, double longitude);
 

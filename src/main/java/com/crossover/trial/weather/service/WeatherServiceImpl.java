@@ -24,10 +24,6 @@ public class WeatherServiceImpl implements WeatherService {
      */
     private List<AirportData> airportData = new ArrayList<>();
 
-    /**
-     * atmospheric information for each airport, idx corresponds with airportData
-     */
-    private List<AtmosphericInformation> atmosphericInformation = new LinkedList<>();
 
     /**
      * Internal performance counter to better understand most requested information, this map can be improved but
@@ -51,72 +47,17 @@ public class WeatherServiceImpl implements WeatherService {
     @CacheEvict("healthData")
     @Override
     public void addDataPoint(String iataCode, String pointType, DataPoint dp) throws WeatherException {
-        int airportDataIdx = getAirportDataIdx(iataCode);
-        AtmosphericInformation ai = atmosphericInformation.get(airportDataIdx);
-        updateAtmosphericInformation(ai, pointType, dp);
+        AtmosphericInformation atmosphericInformation = findAirportData(iataCode).getAtmosphericInformation();
+        atmosphericInformation.update(DataPointType.valueOf(pointType.toUpperCase()), dp);
     }
 
     @CacheEvict("healthData")
     @Override
     public void addAirport(AirportData ad) {
         airportData.add(ad);
-        AtmosphericInformation ai = new AtmosphericInformation();
-        atmosphericInformation.add(ai);
     }
 
-    /**
-     * update atmospheric information with the given data point for the given point type
-     *
-     * @param ai        the atmospheric information object to update
-     * @param pointType the data point type as a string
-     * @param dp        the actual data point
-     */
 
-    @CacheEvict("healthData")
-    @Override
-    public void updateAtmosphericInformation(AtmosphericInformation ai, String pointType, DataPoint dp) throws WeatherException {
-        final DataPointType dptype = DataPointType.valueOf(pointType.toUpperCase());
-        switch (dptype) {
-            case WIND:
-                if (dp.getMean() >= 0) {
-                    ai.setWind(dp);
-                    ai.setLastUpdateTime(System.currentTimeMillis());
-                }
-                break;
-            case TEMPERATURE:
-                if (dp.getMean() >= -50 && dp.getMean() < 100) {
-                    ai.setTemperature(dp);
-                    ai.setLastUpdateTime(System.currentTimeMillis());
-                }
-                break;
-            case HUMIDTY:
-                if (dp.getMean() >= 0 && dp.getMean() < 100) {
-                    ai.setHumidity(dp);
-                    ai.setLastUpdateTime(System.currentTimeMillis());
-                }
-                break;
-            case PRESSURE:
-                if (dp.getMean() >= 650 && dp.getMean() < 800) {
-                    ai.setPressure(dp);
-                    ai.setLastUpdateTime(System.currentTimeMillis());
-                }
-                break;
-            case CLOUDCOVER:
-                if (dp.getMean() >= 0 && dp.getMean() < 100) {
-                    ai.setCloudCover(dp);
-                    ai.setLastUpdateTime(System.currentTimeMillis());
-                }
-                break;
-            case PRECIPITATION:
-                if (dp.getMean() >= 0 && dp.getMean() < 100) {
-                    ai.setPrecipitation(dp);
-                    ai.setLastUpdateTime(System.currentTimeMillis());
-                }
-                break;
-            default:
-                throw new IllegalStateException("couldn't update atmospheric data");
-        }
-    }
 
 
     /**
@@ -133,8 +74,6 @@ public class WeatherServiceImpl implements WeatherService {
     public AirportData addAirport(String iataCode, double latitude, double longitude) {
         AirportData ad = new AirportData();
         airportData.add(ad);
-        AtmosphericInformation ai = new AtmosphericInformation();
-        atmosphericInformation.add(ai);
         ad.setIata(iataCode);
         ad.setLatitude(latitude);
         ad.setLatitude(longitude);
@@ -147,7 +86,8 @@ public class WeatherServiceImpl implements WeatherService {
         Map<String, Object> retval = new HashMap<>();
 
         int datasize = 0;
-        for (AtmosphericInformation ai : atmosphericInformation) {
+        for (AirportData ad : airportData) {
+            AtmosphericInformation ai = ad.getAtmosphericInformation();
             // we only count recent readings
             if (ai.getCloudCover() != null
                 || ai.getHumidity() != null
@@ -190,13 +130,13 @@ public class WeatherServiceImpl implements WeatherService {
         updateRequestFrequency(iata, radius);
         List<AtmosphericInformation> retval = new ArrayList<>();
         if (radius == 0) {
-            int idx = getAirportDataIdx(iata);
-            retval.add(atmosphericInformation.get(idx));
+            AirportData airportData = findAirportData(iata);
+            retval.add(airportData.getAtmosphericInformation());
         } else {
             AirportData ad = findAirportData(iata);
             for (int i = 0; i < airportData.size(); i++) {
                 if (Util.calculateDistance(ad, airportData.get(i)) <= radius) {
-                    AtmosphericInformation ai = atmosphericInformation.get(i);
+                    AtmosphericInformation ai = airportData.get(i).getAtmosphericInformation();
                     if (ai.getCloudCover() != null || ai.getHumidity() != null || ai.getPrecipitation() != null
                         || ai.getPressure() != null || ai.getTemperature() != null || ai.getWind() != null) {
                         retval.add(ai);
@@ -262,7 +202,6 @@ public class WeatherServiceImpl implements WeatherService {
         AirportData ad = findAirportData(iataCode);
         int idx = airportData.indexOf(ad);
         airportData.remove(ad);
-        atmosphericInformation.remove(idx);
     }
 
 

@@ -112,4 +112,48 @@ public class AtmosphericInformation {
     public void setLastUpdateTime(long lastUpdateTime) {
         this.lastUpdateTime = lastUpdateTime;
     }
+
+
+    public void update(DataPointType dptype, DataPoint dp) {
+        switch (dptype) {
+            case WIND:
+                if (dp.getMean() >= 0) {
+                    setWind(dp);
+                    setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case TEMPERATURE:
+                if (dp.getMean() >= -50 && dp.getMean() < 100) {
+                    setTemperature(dp);
+                    setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case HUMIDTY:
+                if (dp.getMean() >= 0 && dp.getMean() < 100) {
+                    setHumidity(dp);
+                    setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case PRESSURE:
+                if (dp.getMean() >= 650 && dp.getMean() < 800) {
+                    setPressure(dp);
+                    setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case CLOUDCOVER:
+                if (dp.getMean() >= 0 && dp.getMean() < 100) {
+                    setCloudCover(dp);
+                    setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            case PRECIPITATION:
+                if (dp.getMean() >= 0 && dp.getMean() < 100) {
+                    setPrecipitation(dp);
+                    setLastUpdateTime(System.currentTimeMillis());
+                }
+                break;
+            default:
+                throw new IllegalStateException("couldn't update atmospheric data");
+        }
+    }
 }
