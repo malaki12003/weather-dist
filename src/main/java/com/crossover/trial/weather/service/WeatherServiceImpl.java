@@ -19,6 +19,7 @@ import java.util.*;
 public class WeatherServiceImpl implements WeatherService {
 
 
+    public static final int LAT_DAY = 86400000;
     /**
      * all known airports
      */
@@ -58,8 +59,6 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
 
-
-
     /**
      * Add a new known airport to our list.
      *
@@ -89,14 +88,9 @@ public class WeatherServiceImpl implements WeatherService {
         for (AirportData ad : airportData) {
             AtmosphericInformation ai = ad.getAtmosphericInformation();
             // we only count recent readings
-            if (ai.getCloudCover() != null
-                || ai.getHumidity() != null
-                || ai.getPressure() != null
-                || ai.getPrecipitation() != null
-                || ai.getTemperature() != null
-                || ai.getWind() != null) {
+            if (ai.hasData()) {
                 // updated in the last day
-                if (ai.getLastUpdateTime() > System.currentTimeMillis() - 86400000) {
+                if (ai.getLastUpdateTime() > System.currentTimeMillis() - LAT_DAY) {
                     datasize++;
                 }
             }
@@ -105,9 +99,13 @@ public class WeatherServiceImpl implements WeatherService {
 
         Map<String, Double> freq = new HashMap<>();
         // fraction of queries
-        for (AirportData data : airportData) {
-            double frac = (double) requestFrequency.getOrDefault(data, 0) / requestFrequency.size();
-            freq.put(data.getIata(), frac);
+        int sum = 0;
+        for (AirportData airportData : this.airportData) {
+            sum += (double) requestFrequency.getOrDefault(airportData, 0);
+        }
+        for (AirportData airportData : this.airportData) {
+            double frac = (double) requestFrequency.getOrDefault(airportData, 0) /sum;
+            freq.put(airportData.getIata(), frac);
         }
         retval.put("iata_freq", freq);
 
@@ -117,7 +115,7 @@ public class WeatherServiceImpl implements WeatherService {
 
         int[] hist = new int[m];
         for (Map.Entry<Double, Integer> e : radiusFreq.entrySet()) {
-            int i = e.getKey().intValue() % 10;
+            int i = e.getKey().intValue();
             hist[i] += e.getValue();
         }
         retval.put("radius_freq", hist);
@@ -137,8 +135,7 @@ public class WeatherServiceImpl implements WeatherService {
             for (int i = 0; i < airportData.size(); i++) {
                 if (Util.calculateDistance(ad, airportData.get(i)) <= radius) {
                     AtmosphericInformation ai = airportData.get(i).getAtmosphericInformation();
-                    if (ai.getCloudCover() != null || ai.getHumidity() != null || ai.getPrecipitation() != null
-                        || ai.getPressure() != null || ai.getTemperature() != null || ai.getWind() != null) {
+                    if (ai.hasData()) {
                         retval.add(ai);
                     }
                 }

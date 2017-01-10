@@ -56,6 +56,14 @@ public class AtmosphericInformation {
         this.lastUpdateTime = System.currentTimeMillis();
     }
 
+    public boolean hasData(){
+        return (this.getCloudCover() != null
+            || this.getHumidity() != null
+            || this.getPressure() != null
+            || this.getPrecipitation() != null
+            || this.getTemperature() != null
+            || this.getWind() != null);
+    }
     public DataPoint getTemperature() {
         return temperature;
     }
