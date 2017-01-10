@@ -6,6 +6,9 @@ import com.crossover.trial.weather.model.AtmosphericInformation;
 import com.crossover.trial.weather.model.DataPoint;
 import com.crossover.trial.weather.model.DataPointType;
 import com.crossover.trial.weather.util.Util;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -46,6 +49,8 @@ public class WeatherServiceImpl implements WeatherService {
      * @param dp        a datapoint object holding pointType data
      * @throws WeatherException if the update can not be completed
      */
+
+    @CacheEvict("healthData")
     @Override
     public void addDataPoint(String iataCode, String pointType, DataPoint dp) throws WeatherException {
         int airportDataIdx = getAirportDataIdx(iataCode);
@@ -53,6 +58,7 @@ public class WeatherServiceImpl implements WeatherService {
         updateAtmosphericInformation(ai, pointType, dp);
     }
 
+    @CacheEvict("healthData")
     @Override
     public void addAirport(AirportData ad) {
         airportData.add(ad);
@@ -67,6 +73,8 @@ public class WeatherServiceImpl implements WeatherService {
      * @param pointType the data point type as a string
      * @param dp        the actual data point
      */
+
+    @CacheEvict("healthData")
     @Override
     public void updateAtmosphericInformation(AtmosphericInformation ai, String pointType, DataPoint dp) throws WeatherException {
         final DataPointType dptype = DataPointType.valueOf(pointType.toUpperCase());
@@ -121,6 +129,8 @@ public class WeatherServiceImpl implements WeatherService {
      * @param longitude in degrees
      * @return the added airport
      */
+
+    @CacheEvict("healthData")
     @Override
     public AirportData addAirport(String iataCode, double latitude, double longitude) {
         AirportData ad = new AirportData();
@@ -133,6 +143,7 @@ public class WeatherServiceImpl implements WeatherService {
         return ad;
     }
 
+    @Cacheable("healthData")
     @Override
     public Map<String, Object> healthData() {
         Map<String, Object> retval = new HashMap<>();
@@ -215,6 +226,7 @@ public class WeatherServiceImpl implements WeatherService {
      * @param iata   an iata code
      * @param radius query radius
      */
+    @CacheEvict("healthData")
     @Override
     public void updateRequestFrequency(String iata, Double radius) {
         AirportData airportData = findAirportData(iata);
@@ -247,6 +259,7 @@ public class WeatherServiceImpl implements WeatherService {
         return airportData.indexOf(ad);
     }
 
+    @CacheEvict("healthData")
     @Override
     public void deleteAirportData(String iataCode) {
         AirportData ad = findAirportData(iataCode);
